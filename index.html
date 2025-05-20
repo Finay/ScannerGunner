@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <script>
+            let currentQRString = "";
+            let score = 0;
+            let userInput = "";
+            let qrInterval = null;
+
+            function randomString(length) {
+                const chars =
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                let result = "";
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(
+                        Math.floor(Math.random() * chars.length),
+                    );
+                }
+                return result;
+            }
+
+            function generateQRCodeWithRandomString() {
+                var qrContainer = document.getElementById("qrcode");
+                qrContainer.innerHTML = "";
+                currentQRString = randomString(12);
+                userInput = "";
+                // Get viewport dimensions
+                var vw = Math.max(
+                    document.documentElement.clientWidth || 0,
+                    window.innerWidth || 0,
+                );
+                var vh = Math.max(
+                    document.documentElement.clientHeight || 0,
+                    window.innerHeight || 0,
+                );
+                // QR code size
+                var qrSize = 256;
+                // Calculate random position within viewport, keeping QR code fully visible
+                var left = Math.floor(Math.random() * (vw - qrSize));
+                var top = Math.floor(Math.random() * (vh - qrSize));
+                qrContainer.style.position = "fixed";
+                qrContainer.style.left = left + "px";
+                qrContainer.style.top = top + "px";
+                qrContainer.style.width = qrSize + "px";
+                qrContainer.style.height = qrSize + "px";
+                qrContainer.style.margin = "0";
+                qrContainer.style.zIndex = "1000";
+                new QRCode(qrContainer, {
+                    text: currentQRString,
+                    width: qrSize,
+                    height: qrSize,
+                });
+                console.log(currentQRString);
+            }
+
+            function updateScore() {
+                document.getElementById("score").textContent = score;
+            }
+
+            function resetQRInterval() {
+                if (qrInterval) clearInterval(qrInterval);
+                qrInterval = setInterval(generateQRCodeWithRandomString, 5000);
+            }
+
+            window.onload = function () {
+                generateQRCodeWithRandomString();
+                resetQRInterval();
+                document.addEventListener("keydown", function (e) {
+                    if (!currentQRString) return;
+                    // Only allow visible ASCII chars
+                    if (e.key.length === 1) {
+                        userInput += e.key;
+                        console.log(userInput);
+                        if (currentQRString.startsWith(userInput)) {
+                            if (userInput === currentQRString) {
+                                score += 1;
+                                updateScore();
+                                generateQRCodeWithRandomString();
+                                resetQRInterval();
+                            }
+                        } else {
+                            userInput = "";
+                        }
+                    }
+                });
+            };
+        </script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+            integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+    </head>
+    <body>
+        <div style="max-width: 400px; margin: 40px auto; text-align: center">
+            <h2>QR Code Score Demo</h2>
+            <p>Score: <span id="score">0</span></p>
+            <p style="margin-top: 20px">
+                Type the QR code's text using your keyboard to increment your
+                score!<br />
+                A new QR code with a random string will be generated every 5
+                seconds at a random spot on the screen.
+            </p>
+        </div>
+        <div id="qrcode"></div>
+    </body>
+</html>
