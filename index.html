@@ -2,9 +2,11 @@
 <html lang="en">
     <head>
         <script>
-            let currentQRString = "";
+            let currentQRString = '';
+            let currentRedQRString = '';
             let score = 0;
-            let userInput = "";
+            let userInput = '';
+            let userInputRed = '';
             let qrInterval = null;
 
             function randomString(length) {
@@ -20,10 +22,17 @@
             }
 
             function generateQRCodeWithRandomString() {
+                // Black QR code
                 var qrContainer = document.getElementById("qrcode");
                 qrContainer.innerHTML = "";
                 currentQRString = randomString(12);
                 userInput = "";
+                // Red QR code
+                var qrRedContainer = document.getElementById("qrcode-red");
+                qrRedContainer.innerHTML = "";
+                currentRedQRString = randomString(12);
+                userInputRed = "";
+
                 // Get viewport dimensions
                 var vw = Math.max(
                     document.documentElement.clientWidth || 0,
@@ -34,8 +43,9 @@
                     window.innerHeight || 0,
                 );
                 // QR code size
-                var qrSize = 256;
-                // Calculate random position within viewport, keeping QR code fully visible
+                var qrSize = 100;
+
+                // Black QR code position
                 var left = Math.floor(Math.random() * (vw - qrSize));
                 var top = Math.floor(Math.random() * (vh - qrSize));
                 qrContainer.style.position = "fixed";
@@ -45,45 +55,79 @@
                 qrContainer.style.height = qrSize + "px";
                 qrContainer.style.margin = "0";
                 qrContainer.style.zIndex = "1000";
+                qrContainer.style.border = "none";
                 new QRCode(qrContainer, {
                     text: currentQRString,
                     width: qrSize,
                     height: qrSize,
                 });
-                console.log(currentQRString);
-            }
 
-            function updateScore() {
-                document.getElementById("score").textContent = score;
-            }
-
-            function resetQRInterval() {
-                if (qrInterval) clearInterval(qrInterval);
-                qrInterval = setInterval(generateQRCodeWithRandomString, 5000);
-            }
-
-            window.onload = function () {
-                generateQRCodeWithRandomString();
-                resetQRInterval();
-                document.addEventListener("keydown", function (e) {
-                    if (!currentQRString) return;
-                    // Only allow visible ASCII chars
-                    if (e.key.length === 1) {
-                        userInput += e.key;
-                        console.log(userInput);
-                        if (currentQRString.startsWith(userInput)) {
-                            if (userInput === currentQRString) {
-                                score += 1;
-                                updateScore();
-                                generateQRCodeWithRandomString();
-                                resetQRInterval();
-                            }
-                        } else {
-                            userInput = "";
-                        }
-                    }
+                // Red QR code position
+                var leftRed = Math.floor(Math.random() * (vw - qrSize));
+                var topRed = Math.floor(Math.random() * (vh - qrSize));
+                qrRedContainer.style.position = "fixed";
+                qrRedContainer.style.left = leftRed + "px";
+                qrRedContainer.style.top = topRed + "px";
+                qrRedContainer.style.width = qrSize + "px";
+                qrRedContainer.style.height = qrSize + "px";
+                qrRedContainer.style.margin = "0";
+                qrRedContainer.style.zIndex = "1001";
+                qrRedContainer.style.border = "4px solid red";
+                new QRCode(qrRedContainer, {
+                    text: currentRedQRString,
+                    width: qrSize,
+                    height: qrSize,
                 });
-            };
+
+                // For debugging
+                console.log("Black QR:", currentQRString, "Red QR:", currentRedQRString);
+            }
+
+           function updateScore() {
+               document.getElementById("score").textContent = score;
+           }
+
+           function resetQRInterval() {
+               if (qrInterval) clearInterval(qrInterval);
+               qrInterval = setInterval(generateQRCodeWithRandomString, 1000);
+           }
+
+           window.onload = function() {
+               generateQRCodeWithRandomString();
+               resetQRInterval();
+               document.addEventListener('keydown', function(e) {
+                   if (!currentQRString || !currentRedQRString) return;
+                   // Only allow visible ASCII chars
+                   if (e.key.length === 1) {
+                       // Black QR logic
+                       userInput += e.key;
+                       if (currentQRString.startsWith(userInput)) {
+                           if (userInput === currentQRString) {
+                               score += 1;
+                               updateScore();
+                               generateQRCodeWithRandomString();
+                               resetQRInterval();
+                               return;
+                           }
+                       } else {
+                           userInput = '';
+                       }
+                       // Red QR logic
+                       userInputRed += e.key;
+                       if (currentRedQRString.startsWith(userInputRed)) {
+                           if (userInputRed === currentRedQRString) {
+                               score -= 1;
+                               updateScore();
+                               generateQRCodeWithRandomString();
+                               resetQRInterval();
+                               return;
+                           }
+                       } else {
+                           userInputRed = '';
+                       }
+                   }
+               });
+           };
         </script>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Document</title>
@@ -106,5 +150,6 @@
             </p>
         </div>
         <div id="qrcode"></div>
+        <div id="qrcode-red"></div>
     </body>
 </html>
